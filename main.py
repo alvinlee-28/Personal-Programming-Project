@@ -195,13 +195,8 @@ def main():
                 check_word(ori, player_letters)
         plr_words = wordsleft
 
-try:
-    word = client.fetch_word('small')
-except DictionaryApiError:
-    print('API error')
-else:
-    for phonetic in word.phonetics:
-        print(phonetic)
+word = client.fetch_word('rgerhed')
+print(word.meanings)
 
 x = False
 y = [['E', 'A3'], ['T', 'A1'], ['I', 'A2'], ['Y', 'A4']]
