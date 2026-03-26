@@ -138,14 +138,20 @@ def check_valid(words):
         return False, False
 
 def check_word(ori, words):
+    print(words)
     num_letters = len(words)
     if ori: ## same rows
         for i in range(num_letters):
             if i != num_letters-1:
-                print(words[i][1])
-                if words[i][1][0] < words[i+1][1][0]:
-                    words[i][1][0], words[i+1][1][0] = words[i+1][1][0], words[i][1][0]
-        print(words)
+                if words[i][1][0] > words[i+1][1][0]:
+                    words[i], words[i+1] = words[i+1], words[i]
+    else: ## same column
+        for i in range(num_letters):
+            if i != num_letters-1:
+                if words[i][1][1:] > words[i+1][1][1:]:
+                    words[i], words[i+1] = words[i+1], words[i]
+
+    print(words)
 
 
 def player_first_turn():
@@ -183,6 +189,6 @@ def main():
                 check_word(ori, player_letters)
         plr_words = wordsleft
 
-x = True
-y = [['T', 'A1'], ['I', 'B1'], ['E', 'C1']]
+x = False
+y = [['E', 'A3'], ['T', 'A1'], ['I', 'A2'], ['D', 'A4']]
 check_word(x, y)
