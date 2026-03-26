@@ -1,6 +1,6 @@
 ## Personal Programming Project - Alvin Lee
 
-from colorama import Fore, Back, Style
+from colorama import Fore, Back, Style ## pip install colorama
 from random import randint
 import random
 from PyDictionary import PyDictionary ## pip install PyDictionary
@@ -132,7 +132,7 @@ def check_valid(words):
         return True
     else:
         print("Word positions not valid")
-        return False
+        return False, False
 
 def player_first_turn():
     pass
@@ -160,10 +160,10 @@ def main():
     pscore, bscore = 0, 0
     while len(letters) > 0:
         display_score(pscore, bscore)
-        val = False
-        while not val:
+        val1, val2 = False, False
+        while not (val1 or val2):
             player_letters, wordsleft = enter_letters(plr_words)
-            val = check_valid(player_letters)
+            val1, val2 = check_valid(player_letters)
         plr_words = wordsleft
 
 main()
