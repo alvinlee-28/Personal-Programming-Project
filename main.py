@@ -199,20 +199,10 @@ def main():
                 check_word(ori, player_letters)
         plr_words = wordsleft
 
+# Get the meaning of "python"
+meaning = dictionary.meaning("python")
+print(meaning)
 
-from PyDictionary import PyDictionary
-
-dictionary=PyDictionary("hotel","ambush","nonchalant","perceptive")
-'There can be any number of words in the Instance'
-
-print(dictionary.printMeanings()) '''This print the meanings of all the words'''
-print(dictionary.getMeanings()) '''This will return meanings as dictionaries'''
-print (dictionary.getSynonyms())
-
-print (dictionary.translateTo("hi")) '''This will translate all words to Hindi'''
-
-
-print (dictionary.antonym("Life"))
 x = False
 y = [['E', 'A3'], ['T', 'A1'], ['I', 'A2'], ['Y', 'A4']]
 print(check_word(x, y))
