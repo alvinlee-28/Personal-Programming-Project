@@ -131,7 +131,7 @@ def check_valid(words):
         print("Word positions valid")
         return True
     else:
-        print("Word positions not valid")
+        print("Word positions not valid! Try again")
         return False, False
 
 def player_first_turn():
