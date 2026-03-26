@@ -166,3 +166,4 @@ def main():
             val = check_valid(player_letters)
         plr_words = wordsleft
 
+main()
