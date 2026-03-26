@@ -157,15 +157,8 @@ def check_word(ori, words): ## bubble sort
     final_word = ""
     for let in words:
         final_word += let[0][0]
-    print (dictionary.meaning("indentation"))
 
-    print (dictionary.meaning("indentation"))
-
-    if dictionary.meaning(final_word) == None:
-        return final_word, False
-    else:
-        return final_word, True
-        
+    return final_word
 
 def player_first_turn():
     pass
@@ -202,9 +195,13 @@ def main():
                 check_word(ori, player_letters)
         plr_words = wordsleft
 
-# Get the meaning of "python"
-meaning = dictionary.meaning("python")
-print(meaning)
+try:
+    word = client.fetch_word('small')
+except DictionaryApiError:
+    print('API error')
+else:
+    for phonetic in word.phonetics:
+        print(phonetic)
 
 x = False
 y = [['E', 'A3'], ['T', 'A1'], ['I', 'A2'], ['Y', 'A4']]
