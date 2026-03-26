@@ -199,6 +199,8 @@ def main():
                 check_word(ori, player_letters)
         plr_words = wordsleft
 
+
+print (dictionary.antonym("Life"))
 x = False
 y = [['E', 'A3'], ['T', 'A1'], ['I', 'A2'], ['Y', 'A4']]
 print(check_word(x, y))
