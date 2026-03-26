@@ -142,8 +142,10 @@ def check_word(ori, words):
     if ori: ## same rows
         for i in range(num_letters):
             if i != num_letters-1:
+                print(words[i][1])
                 if words[i][1][0] < words[i+1][1][0]:
                     words[i][1][0], words[i+1][1][0] = words[i+1][1][0], words[i][1][0]
+        print(words)
 
 
 def player_first_turn():
@@ -181,4 +183,6 @@ def main():
                 check_word(ori, player_letters)
         plr_words = wordsleft
 
-main()
+x = True
+y = [['T', 'A1'], ['I', 'B1'], ['E', 'C1']]
+check_word(x, y)
