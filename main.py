@@ -151,8 +151,11 @@ def check_word(ori, words):
                 if words[i][1][1:] > words[i+1][1][1:]:
                     words[i], words[i+1] = words[i+1], words[i]
 
-    print(words)
+    final_word = ""
+    for let in words:
+        final_word += let[0][0]
 
+    return final_word
 
 def player_first_turn():
     pass
@@ -191,4 +194,4 @@ def main():
 
 x = False
 y = [['E', 'A3'], ['T', 'A1'], ['I', 'A2'], ['D', 'A4']]
-check_word(x, y)
+print(check_word(x, y))
