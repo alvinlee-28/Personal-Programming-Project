@@ -157,8 +157,12 @@ def check_word(ori, words): ## bubble sort
     final_word = ""
     for let in words:
         final_word += let[0][0]
-
-    return final_word
+    try:
+        word = client.fetch_word(final_word)
+    except:
+        return False, final_word
+    else:
+        return True, final_word
 
 def player_first_turn():
     pass
@@ -195,9 +199,7 @@ def main():
                 check_word(ori, player_letters)
         plr_words = wordsleft
 
-word = client.fetch_word('rgerhed')
-print(word.meanings)
-
 x = False
-y = [['E', 'A3'], ['T', 'A1'], ['I', 'A2'], ['Y', 'A4']]
-print(check_word(x, y))
+y = [['E', 'A3'], ['T', 'A1'], ['I', 'A2'], ['D', 'A4']]
+a, b = check_word(x, y)
+print(a, b) 
