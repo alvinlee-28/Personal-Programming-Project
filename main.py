@@ -196,10 +196,14 @@ def main():
             print(player_letters)
             val, ori = check_valid(player_letters)
             if val:
-                check_word(ori, player_letters)
+                val, word = check_word(ori, player_letters)
+                if val:
+                    print(word)
         plr_words = wordsleft
 
-x = False
-y = [['E', 'A3'], ['T', 'A1'], ['I', 'A2'], ['D', 'A4']]
-a, b = check_word(x, y)
-print(a, b) 
+# x = False
+# y = [['E', 'A3'], ['T', 'A1'], ['I', 'A2'], ['D', 'A4']]
+# a, b = check_word(x, y)
+# print(a, b) 
+
+main()
