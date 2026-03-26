@@ -156,12 +156,12 @@ def check_word(ori, words): ## bubble sort
         final_word += let[0][0]
     print (dictionary.meaning("indentation"))
 
-    final_word = "indentation"
-    print("definition is", dictionary.meaning(final_word.lower()))
+    print (dictionary.meaning("indentation"))
+
     if dictionary.meaning(final_word) == None:
         return final_word, False
     else:
-        return final_word, dictionary.meaning(final_word)
+        return final_word, True
         
 
 def player_first_turn():
@@ -200,6 +200,5 @@ def main():
         plr_words = wordsleft
 
 x = False
-y = [['E', 'A3'], ['T', 'A1'], ['I', 'A2'], ['D', 'A4']]
+y = [['E', 'A3'], ['T', 'A1'], ['I', 'A2'], ['Y', 'A4']]
 print(check_word(x, y))
-print (dictionary.synonym("Life"))
