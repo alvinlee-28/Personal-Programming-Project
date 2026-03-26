@@ -4,7 +4,7 @@ from colorama import Fore, Back, Style ## pip install colorama
 from random import randint
 import random
 from PyDictionary import PyDictionary ## pip install PyDictionary
-dictionary = PyDictionary
+dictionary = PyDictionary()
 
 # store letters values
 freq = {"E": 12,
@@ -137,7 +137,7 @@ def check_valid(words):
         print("Word positions not valid! Try again")
         return False, False
 
-def check_word(ori, words):
+def check_word(ori, words): ## bubble sort
     print(words)
     num_letters = len(words)
     if ori: ## same rows
@@ -154,8 +154,15 @@ def check_word(ori, words):
     final_word = ""
     for let in words:
         final_word += let[0][0]
+    print (dictionary.meaning("indentation"))
 
-    return final_word
+    final_word = "indentation"
+    print("definition is", dictionary.meaning(final_word.lower()))
+    if dictionary.meaning(final_word) == None:
+        return final_word, False
+    else:
+        return final_word, dictionary.meaning(final_word)
+        
 
 def player_first_turn():
     pass
@@ -195,3 +202,4 @@ def main():
 x = False
 y = [['E', 'A3'], ['T', 'A1'], ['I', 'A2'], ['D', 'A4']]
 print(check_word(x, y))
+print (dictionary.synonym("Life"))
