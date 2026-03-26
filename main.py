@@ -129,10 +129,22 @@ def check_valid(words):
             same_column = False
     if same_row or same_column:
         print("Word positions valid")
-        return True
+        if same_row:
+            return True, True
+        else:
+            return True, False
     else:
         print("Word positions not valid! Try again")
         return False, False
+
+def check_word(ori, words):
+    num_letters = len(words)
+    if ori: ## same rows
+        for i in range(num_letters):
+            if i != num_letters-1:
+                if words[i][1][0] < words[i+1][1][0]:
+                    words[i][1][0], words[i+1][1][0] = words[i+1][1][0], words[i][1][0]
+
 
 def player_first_turn():
     pass
@@ -160,10 +172,13 @@ def main():
     pscore, bscore = 0, 0
     while len(letters) > 0:
         display_score(pscore, bscore)
-        val1, val2 = False, False
-        while not (val1 or val2):
+        val, ori = False, False ## val determines whether it is valid, ori detemines orientation of word
+        while not (val or ori):
             player_letters, wordsleft = enter_letters(plr_words)
-            val1, val2 = check_valid(player_letters)
+            print(player_letters)
+            val, ori = check_valid(player_letters)
+            if val:
+                check_word(ori, player_letters)
         plr_words = wordsleft
 
 main()
