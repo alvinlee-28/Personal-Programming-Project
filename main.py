@@ -3,8 +3,9 @@
 from colorama import Fore, Back, Style ## pip install colorama
 from random import randint
 import random
-from PyDictionary import PyDictionary ## pip install PyDictionary
-dictionary = PyDictionary()
+# from PyDictionary import PyDictionary ## pip install PyDictionary
+from freedictionaryapi.clients.sync_client import DictionaryApiClient
+client = DictionaryApiClient()
 
 # store letters values
 freq = {"E": 12,
