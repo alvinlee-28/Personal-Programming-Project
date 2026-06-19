@@ -1,49 +1,28 @@
 ## Personal Programming Project - Alvin Lee
 
 from colorama import Fore, Back, Style ## pip install colorama
-from random import randint
+from time import sleep
 import random
+import copy
 from freedictionaryapi.clients.sync_client import DictionaryApiClient
 client = DictionaryApiClient()
+import os
 
-## pip install python-freeDictionaryAPI
-## pip install httpx
+# pip install python-freeDictionaryAPI
+# pip install httpx
 
-# store letters values
-freq = {"E": 12,
-       "A": 9,
-       "I": 9,
-       "O": 8,
-       "N": 6,
-       "R": 6,
-       "T": 6,
-       "L": 4,
-       "S": 4,
-       "U": 4,
-       "D": 4,
-       "G": 3,
-       "B": 2,
-       "C": 2,
-       "M": 2,
-       "P": 2,
-       "F": 2,
-       "H": 2,
-       "V": 2,
-       "W": 2,
-       "Y": 2,
-       "K": 1,
-       "J": 1,
-       "X": 1,
-       "Q": 1,
-       "Z": 1,
-       " ": 2}
+# constants and configurations
+
+# letters frequency
+letter_freq = {"E": 12, "A": 9, "I": 9, "O": 8, "N": 6, "R": 6, "T": 6, "L": 4, "S": 4, "U": 4, "D": 4, "G": 3, "B": 2, "C": 2, "M": 2, "P": 2, "F": 2, "H": 2, "V": 2, "W": 2, "Y": 2, "K": 1, "J": 1, "X": 1, "Q": 1, "Z": 1, " ": 2}
 
 # avaliables letters to give
-letters = []
-for letter in freq:
-    for i in range(freq[letter]):
-        letters.append(letter)
+aval_letters = []
+for letter in letter_freq:
+    for i in range(letter_freq[letter]):
+        aval_letters.append(letter)
 
+# letter points
 points = {1: ["E", "A", "I", "O", "N", "R", "T", "L", "S", "U"],
          2: ["D", "G"],
          3: ["B", "C", "M", "P"],
@@ -52,16 +31,27 @@ points = {1: ["E", "A", "I", "O", "N", "R", "T", "L", "S", "U"],
          8: ["J", "X"],
          10: ["Q", "Z"]}
 
-def update_letters(letters):
-    words = [[] for _ in range(2)]
-    for i in range(2):
-        word = words[i]
+used_positions = []
+used_letter_and_positions = []
+
+
+def clear_screen():
+    # 'nt' is the internal name for Windows
+    if os.name == 'nt':
+        os.system('cls')
+    else:
+        os.system('clear')
+
+def create_letters(letters, n):
+    wordlists = [[] for _ in range(n)]
+    for i in range(n):
+        word = wordlists[i]
         for i in range(7):
             random.shuffle(letters)
             l = letters.pop()
             word.append(l)
 
-    return words
+    return wordlists
         
 def create_board():
     board = []
@@ -86,7 +76,7 @@ def display_board(b):
         else:
             front = "   "
 
-        disboard.append(front + b[row])
+        disboard.append(front + b[row]) ### play lankybox neighbourhood roleplay
 
     for row in disboard:
         print(row)
@@ -94,44 +84,157 @@ def display_board(b):
 def choose_first_player():
     pass
 
-def bot_turn():
-    pass
+def update_letters(letters, p):
+    n = 7 - len(p)
+    for i in range(n):
+        random.shuffle(letters)
+        l = letters.pop()
+        p.append(l)
+    return p
 
-def enter_letters(words):
-    print("Turn: Player")
-    tempwords = words[:]
-    flag = True
+def is_connected_to_board(positions):
+        if not used_positions:
+            return True
+        for pos in positions:
+            if pos in used_positions:
+                return True
+            col, row = position(pos)
+            row = int(row)
+            col_ord = ord(col)
+            neighbors = [
+                f"{chr(col_ord - 1)}{row}",
+                f"{chr(col_ord + 1)}{row}",
+                f"{col}{row - 1}",
+                f"{col}{row + 1}"
+            ]
+            for neighbor in neighbors:
+                if neighbor in used_positions:
+                    return True
+        return False
+
+def enter_letters(words, n, first, board):
+    print("Turn: Player", n)
+    tempwords = words.copy()
     createword = []
+    temporary_position = []
+    flag = True
+
+    if first:
+        print("Place one letter in the centre position H8\n")
+
     while flag and len(words) > 0:
-        valid = False
-        while not valid:
-            print("Your letters:", ", ".join(word for word in tempwords))
-            place = input("Enter placement:\n> ").split(" ")
-            let = place[0]
-            valid = True
-            try:
+        
+
+        print("Your letters:", ", ".join(word for word in tempwords))
+
+        pp = False
+        while not pp:
+
+            line = input("Enter placement:\n> ").strip()
+            print("\n")
+            if line == "":
+                if not createword:
+                    print("You must enter a letter.")
+                    continue
+                flag = False
+                return createword, tempwords
+
+            place = line.split()
+            if len(place) < 2:
+                print("Enter letter and position (e.g. J B1)")
+                continue
+
+            let = place[0].upper()
+            cord = place[1].upper()
+            use_existing = len(place) >= 3
+
+            if len(cord) < 2:
+                print("Enter a valid position (e.g. B1)")
+                continue
+
+            x = cord[0]
+            y = cord[1:]
+            if x not in "ABCDEFGHIJKLMNO" or not y.isdigit() or not (1 <= int(y) <= 15):
+                print(f"{cord} is not a valid position!\n")
+                continue
+
+            if use_existing:
+                if cord not in used_positions:
+                    print(f"{cord} isn't being used!\n")
+                    continue
+                letter = find_letter_from_pos(cord)
+                if letter != let:
+                    print(f"{letter} is in position {cord}!")
+                    continue
+            else:
+                if cord in used_positions:
+                    print(f"{cord} is in use!\n")
+                    continue
+                if let not in tempwords:
+                    print("You don't have this letter!\n")
+                    continue
                 tempwords.remove(let)
-                createword.append(place)
-                valid = True
-                con = input("Continue? (y/n): ")
-                if con == "n":
-                    flag = False
-                    return createword, tempwords
-            except:
-                print("You don't have this letter!")
+
+            createword.append([let, cord])
+            temporary_position.append(cord)
+
+
+            board_copy = copy.deepcopy(board)
+
+            board_copy = add_to_board(createword, board_copy)
+
+            display_board(board_copy)
+            
+            pp = True
+
+            con = input("Continue? (y/n): ").strip().lower()
+            print("\n")
+            if con == "n":
+                flag = False
+                if first and "H8" not in temporary_position:
+                    print("First player must place one letter in middle position H8 during the first turn")
+                    tempwords = words.copy()
+                    createword = []
+                    temporary_position = []
+                    flag = True
+                    sleep(1)
+                    print("\n")
+                    display_board(board)
+
+                    break
+
+                if not first and not is_connected_to_board(temporary_position):
+                    print("Your words must be connected to others on the board!")
+                    tempwords = words.copy()
+                    createword = []
+                    temporary_position = []
+                    flag = True
+                    sleep(1)
+                    print("\n")
+                    display_board(board)
+
+                    break
+
+                return createword, tempwords
+
+    return createword, tempwords
+
+def position(s):
+    col = s[0]
+    row = int(s[1:])
+    return col, row
 
 def check_valid(words):
-    ref_column = words[1][1][0]
-    ref_row = words[1][1][1]
+    ref_column = words[0][1][0]
+    ref_row = words[0][1][1:]
     same_row = True
     same_column = True
     for pos in words:
-        if ref_column != pos[1][0]: ## column
+        if ref_column != pos[1][0]: ## row
             same_row = False
-        if ref_row != pos[1][1]: ## rows
+        if ref_row != pos[1][1:]: ## column
             same_column = False
     if same_row or same_column:
-        print("Word positions valid")
         if same_row:
             return True, True
         else:
@@ -140,19 +243,62 @@ def check_valid(words):
         print("Word positions not valid! Try again")
         return False, False
 
+def check_adjacent(words, ori):
+    list = []
+    valid = True
+    # print(list)
+
+    for set in words:
+        pos = set[1]
+
+        if not ori:
+            list.append(pos[0])
+            y = ord(list[0]) - 2
+        else:
+            list.append(pos[1:])
+            y = int(list[0]) - 1
+
+    print(list)
+
+    for i in range(len(list)):
+        if not ori:
+            x = ord(list[i])
+            y = i + ord(list[0])  ## letters increase
+        else:
+            x = int(list[i]) ## numbers increase
+            y += 1
+        
+        print(x, y)
+        if x != y:
+            valid = False
+                
+    return valid
+
+def position(s):
+    col = s[0]
+    row = int(s[1:])
+    return col, row
+
+
 def check_word(ori, words): ## bubble sort
-    print(words)
-    num_letters = len(words)
-    if ori: ## same rows
-        for i in range(num_letters):
-            if i != num_letters-1:
-                if words[i][1][0] > words[i+1][1][0]:
+    n = len(words)
+    for i in range(n):
+        for i in range(n - 1):
+            c1, r1 = position(words[i][1])
+            c2, r2 = position(words[i + 1][1])
+
+            if ori:  # same column -> sort by row number
+                if r1 > r2:
                     words[i], words[i+1] = words[i+1], words[i]
-    else: ## same column
-        for i in range(num_letters):
-            if i != num_letters-1:
-                if words[i][1][1:] > words[i+1][1][1:]:
+            else:    # same row -> sort by column letter
+                if c1 > c2:
                     words[i], words[i+1] = words[i+1], words[i]
+
+    valid = check_adjacent(words, ori)
+    if not valid:
+        print("Letters are not adjacent")
+        return valid, "", None
+    
 
     final_word = ""
     for let in words:
@@ -160,50 +306,196 @@ def check_word(ori, words): ## bubble sort
     try:
         word = client.fetch_word(final_word)
     except:
-        return False, final_word
+        return False, final_word, words
     else:
-        return True, final_word
+        return True, final_word, words
+
+def add_to_board(pos, board):
+    for set in pos:
+        l = set[1][0]
+        n = set[1][1:]
+
+        target_index = 2 + (ord(l) - ord("A")) * 4
+        
+        row = board[2*int(n)-1]
+        
+        row = row[:target_index] + set[0] + row[target_index+1:]
+        
+        board[2*int(n)-1] = row
+        
+    return board
 
 def player_first_turn():
     pass
 
-def display_score(pscore, bscore):
+def display_score(score):
     print("Score")
-    print("Player:", pscore)
-    print("Bot:", bscore)
+    for i in range(len(score)):
+        print(f"Player {i+1}: {score[i]}")
     print("\n")
 
 def introduction():
     print("WELCOME TO SCRABBLE!!")
-    print("Enter turn with letter and position of letter (e.g. J B1)\n")
+
+    while True:
+        try:
+            players = int(input("Enter number of players (1-4): "))
+            if players <= 4 and players >= 1:
+                break
+            else:
+                print("Please enter valid number of numbers from 1-4")
+        except ValueError:
+            print("Please enter valid number of numbers from 1-4")
+
+    sleep(1)
+
+    clear_screen()
+
+    print("\nEnter turn with letter and position of letter (e.g. J B1)")
+    print("Enter in this format to extend a word with a letter already on the board (J B1 x)")
+    print("Press enter to stop entering letters\n")
+
+    sleep(3)
+
     print("Colour multiplier:")
     print(Back.RED + "-" + Style.RESET_ALL + " 3x word score")
-    print(Back.YELLOW + "-" + Style.RESET_ALL + " 3x word score")
-    print(Back.BLUE + "-" + Style.RESET_ALL + " 3x word score")
-    print(Back.CYAN + "-" + Style.RESET_ALL + " 3x word score\n")
+    print(Back.YELLOW + "-" + Style.RESET_ALL + " 2x word score")
+    print(Back.BLUE + "-" + Style.RESET_ALL + " 3x letter score")
+    print(Back.CYAN + "-" + Style.RESET_ALL + " 2x letter score\n")
+
+    sleep(3)
+    
+    return players
+
+def calculate_score(word, p, s):
+    score = s
+    for let in word:
+        for i in p:
+            if let in p[i]:
+                score += i
+    return score
+
+def create_variables(n):
+    score = [0 for _ in range(n)]
+    round = 1
+    count = 1
+
+    return score, round, count
+
+def find_letter_from_pos(cord):
+    for i in range(len(used_letter_and_positions)):
+        set = used_letter_and_positions[i]
+        if set[1] == cord:
+            return set[0]
+
+def taken_positions(wordslist):
+    for set in wordslist:
+        used_positions.append(set[1])
+
+def store_letter_and_positions(wordslist):
+    for set in wordslist:
+        used_letter_and_positions.append(set)
+
+
+ascii_logo = """⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀
+⡀⡀⡀⡀⡀⡀⢀⣠⣤⣄⣀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⣀⣤⣤⣄⣀⡀⡀⡀⡀⡀⡀⡀⣀⣀⣀⣀⣀⣀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⣀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⢀⣀⣀⣀⣀⣀⣀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⣀⣀⣀⣀⣀⣀⣀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⣀⣀⣀⣀⣀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⢀⣀⣀⣀⣀⣀⣀⣀⣀⣀⡀⡀⡀⡀⡀
+⡀⡀⡀⡀⡀⣾⠋⡀⡀⡀⢹⣿⡀⡀⡀⡀⡀⡀⡀⡀⡀⢀⣾⠟⠁⡀⡀⡀⠈⣿⡀⡀⡀⡀⡀⡀⡀⢸⣿⡀⡀⡀⠈⠻⣷⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⢰⣿⡆⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⣿⣿⡀⡀⡀⠙⣿⡄⡀⡀⡀⡀⡀⡀⡀⡀⡀⣿⡇⡀⡀⠈⠻⣷⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⢸⣿⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⣿⣿⡀⡀⡀⡀⡀⣿⡀⡀⡀⡀⡀
+⡀⡀⡀⡀⢸⣿⡀⡀⡀⡀⡀⠟⡀⡀⡀⡀⡀⡀⡀⡀⢠⣿⠃⡀⡀⡀⡀⡀⡀⣿⡀⡀⡀⡀⡀⡀⡀⢸⣿⡀⡀⡀⡀⡀⣿⡇⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡏⠸⣿⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⣿⣿⡀⡀⡀⡀⢸⣿⡀⡀⡀⡀⡀⡀⡀⡀⡀⣿⡇⡀⡀⡀⡀⣿⡇⡀⡀⡀⡀⡀⡀⡀⡀⡀⢸⣿⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⣿⣿⡀⡀⡀⡀⡀⠿⡀⡀⡀⡀⡀
+⡀⡀⡀⡀⠈⣿⣦⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⣿⡟⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⢸⣿⡀⡀⡀⡀⢀⣿⠃⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⣸⡀⡀⣿⣇⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⣿⣿⡀⡀⡀⢀⣿⠋⡀⡀⡀⡀⡀⡀⡀⡀⡀⣿⡇⡀⡀⡀⣠⣿⠁⡀⡀⡀⡀⡀⡀⡀⡀⡀⢸⣿⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⣿⣿⡀⡀⡀⣶⡀⡀⡀⡀⡀⡀⡀
+⡀⡀⡀⡀⡀⡀⠛⢿⣿⣶⣄⡀⡀⡀⡀⡀⡀⡀⡀⡀⣿⡇⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⢸⣿⣤⣤⣤⣶⠛⠁⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡏⡀⡀⠘⣿⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⣿⣿⠶⠶⠿⣭⣀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⣿⡷⠶⠶⠿⣥⣀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⢸⣿⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⣿⣿⠶⠶⠶⣿⡀⡀⡀⡀⡀⡀⡀
+⡀⡀⡀⡀⡀⡀⡀⡀⡀⠙⢿⣷⡀⡀⡀⡀⡀⡀⡀⡀⣿⣇⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⢸⣿⡀⡀⡀⠙⣿⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⣼⣤⣤⣤⣤⣿⣧⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⣿⣿⡀⡀⡀⡀⠙⣿⡄⡀⡀⡀⡀⡀⡀⡀⡀⣿⡇⡀⡀⡀⡀⢻⣷⡀⡀⡀⡀⡀⡀⡀⡀⡀⢸⣿⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⣿⣿⡀⡀⡀⣿⡀⡀⡀⡀⡀⡀⡀
+⡀⡀⡀⡀⣤⡀⡀⡀⡀⡀⡀⣿⡆⡀⡀⡀⡀⡀⡀⡀⠹⣿⡀⡀⡀⡀⡀⡀⡀⣰⡀⡀⡀⡀⡀⡀⡀⢸⣿⡀⡀⡀⡀⢿⣷⡀⡀⡀⡀⡀⡀⡀⡀⡀⢀⠇⡀⡀⡀⡀⠘⣿⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⣿⣿⡀⡀⡀⡀⡀⣿⡇⡀⡀⡀⡀⡀⡀⡀⡀⣿⡇⡀⡀⡀⡀⢠⣿⡀⡀⡀⡀⡀⡀⡀⡀⡀⢸⣿⡀⡀⡀⡀⡀⢠⡀⡀⡀⡀⡀⡀⡀⡀⡀⣿⣿⡀⡀⡀⡀⡀⢠⡀⡀⡀⡀⡀
+⡀⡀⡀⡀⣿⡀⡀⡀⡀⡀⣠⡿⡀⡀⡀⡀⡀⡀⡀⡀⡀⠹⣿⣀⡀⡀⡀⡀⡀⣿⡀⡀⡀⡀⡀⡀⡀⢸⣿⡀⡀⡀⡀⠘⣿⡀⡀⡀⡀⡀⡀⡀⡀⡀⣾⡀⡀⡀⡀⡀⡀⢿⣷⡀⡀⡀⡀⡀⡀⡀⡀⡀⣿⣿⡀⡀⡀⡀⣴⡿⡀⡀⡀⡀⡀⡀⡀⡀⡀⣿⡇⡀⡀⡀⢀⣾⠟⡀⡀⡀⡀⡀⡀⡀⡀⡀⢸⣿⡀⡀⡀⡀⡀⣿⡀⡀⡀⡀⡀⡀⡀⡀⡀⣿⣿⡀⡀⡀⡀⡀⣾⡀⡀⡀⡀⡀
+⡀⡀⡀⡀⠈⠛⠳⠶⠶⠛⠉⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⠉⠛⠶⠶⠶⠛⠉⡀⡀⡀⡀⡀⡀⠛⠛⠛⠛⠛⡀⡀⡀⠙⠛⠛⡀⡀⡀⡀⡀⠘⠛⠛⠛⠂⡀⡀⠐⠛⠛⠛⠛⠛⡀⡀⡀⡀⡀⠘⠛⠛⠛⠛⠛⠛⠋⠁⡀⡀⡀⡀⡀⡀⡀⡀⠛⠛⠛⠛⠛⠛⠛⠉⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⠛⠛⠛⠛⠛⠛⠛⠛⠛⡀⡀⡀⡀⡀⡀⡀⠘⠛⠛⠛⠛⠛⠛⠛⠛⠛⡀⡀⡀⡀⡀
+⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀⡀
+""".splitlines()
+
+def logo_animation(logo):
+    word_list = []
+    for i in range(8):
+        letter_list = []
+        for line in logo:
+            pos = i * 17
+            letter_list.append(line[pos:pos+16])
+        word_list.append(letter_list)
+
+    master_canvas = [[" " * 16 for _ in range(8)] for _ in range(11)]
+
+    for index, letter in enumerate(word_list):
+        x = 1
+        for step in range(11):
+
+            temp_frame = [" " * 16 for _ in range(11)]
+            
+            for i in range(step + 1):
+                temp_frame[i] = letter[i + (10 - step)]
+                
+            for r in range(11):
+                master_canvas[r][index] = temp_frame[r]
+                
+            clear_screen()
+            for row in master_canvas:
+                print(" ".join(row))
+                
+            sleep(0.05/x)
+            x = x * 1.3
 
 def main():
-    introduction()
-    board = create_board()
-    display_board(board)
-    plr_words, bot_words = update_letters(letters)
-    pscore, bscore = 0, 0
-    while len(letters) > 0:
-        display_score(pscore, bscore)
-        val, ori = False, False ## val determines whether it is valid, ori detemines orientation of word
-        while not (val or ori):
-            player_letters, wordsleft = enter_letters(plr_words)
-            print(player_letters)
-            val, ori = check_valid(player_letters)
-            if val:
-                val, word = check_word(ori, player_letters)
-                if val:
-                    print(word)
-        plr_words = wordsleft
+    logo_animation(ascii_logo)
+    print()
 
-# x = False
-# y = [['E', 'A3'], ['T', 'A1'], ['I', 'A2'], ['D', 'A4']]
-# a, b = check_word(x, y)
-# print(a, b) 
+    sleep(0.5)
+    plr_num = introduction()
+    board = create_board()
+    plr_letters = create_letters(aval_letters, plr_num)
+    score, round, count = create_variables(plr_num)
+
+    while len(aval_letters) > 0:
+
+        p_letters = plr_letters[count-1]
+        p_score = score[count-1]
+
+        display_board(board)
+        display_score(score)
+
+        sleep(1)
+
+        print("Round:", round)
+        valid, ori = False, False ## valid determines whether it is valid, ori detemines orientation of word
+        while not (valid or ori):
+            first_turn = False
+            if round == 1 and count == 1:
+                first_turn = True
+            letter_pos, wordsleft = enter_letters(p_letters, count, first_turn, board)
+            valid, ori = check_valid(letter_pos) ## checks if entered positions are valid
+            if not valid:
+                continue
+            valid, word, letter_pos = check_word(ori, letter_pos) ## checks if word exists
+            if valid:
+                taken_positions(letter_pos)
+                store_letter_and_positions(letter_pos)
+                # print(used_positions)
+                board = add_to_board(letter_pos, board)
+                display_board(board)
+                print("Word found: "+ word, "\n")
+                sleep(2)
+            else:
+                print(f"The word '{word}' was not found")
+                valid, ori = False, False
+
+        score[count-1] = calculate_score(word, points, p_score)
+        plr_letters[count-1] = update_letters(aval_letters, wordsleft)
+
+        if count == plr_num: ## check if all players have gone
+            count = 1
+            round += 1
+        else:
+            count += 1
+
+# # x = False
+# y = [['E', 'B1'], ['T', 'C1'], ['I', 'D1'], ['D', 'E1']]
+# # a, b = check_word(x, y)
+# # print(a, b) 
+
 
 main()
