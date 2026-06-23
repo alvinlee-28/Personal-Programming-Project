@@ -11,6 +11,8 @@ import os
 # pip install python-freeDictionaryAPI
 # pip install httpx
 
+# hi
+
 # constants and configurations
 
 # letters frequency
@@ -92,7 +94,7 @@ def update_letters(letters, p):
         p.append(l)
     return p
 
-def is_connected_to_board(positions):
+def is_connected_to_word(positions):
         if not used_positions:
             return True
         for pos in positions:
@@ -111,6 +113,11 @@ def is_connected_to_board(positions):
                 if neighbor in used_positions:
                     return True
         return False
+
+def position(s):
+    col = s[0]
+    row = int(s[1:])
+    return col, row
 
 def enter_letters(words, n, first, board):
     print("Turn: Player", n)
@@ -134,7 +141,7 @@ def enter_letters(words, n, first, board):
             print("\n")
             if line == "":
                 if not createword:
-                    print("You must enter a letter.")
+                    print(Back.RED + "You must enter a letter." + Style.RESET_ALL)
                     continue
                 flag = False
                 return createword, tempwords
@@ -155,23 +162,23 @@ def enter_letters(words, n, first, board):
             x = cord[0]
             y = cord[1:]
             if x not in "ABCDEFGHIJKLMNO" or not y.isdigit() or not (1 <= int(y) <= 15):
-                print(f"{cord} is not a valid position!\n")
+                print(Back.RED + f"{cord} is not a valid position!\n" + Style.RESET_ALL)
                 continue
 
             if use_existing:
                 if cord not in used_positions:
-                    print(f"{cord} isn't being used!\n")
+                    print(Back.RED + f"{cord} isn't being used!\n" + Style.RESET_ALL)
                     continue
                 letter = find_letter_from_pos(cord)
                 if letter != let:
-                    print(f"{letter} is in position {cord}!")
+                    print(Back.RED + f"{letter} is in position {cord}!" + Style.RESET_ALL)
                     continue
             else:
                 if cord in used_positions:
-                    print(f"{cord} is in use!\n")
+                    print(Back.RED + f"{cord} is in use!" + Style.RESET_ALL + "\n")
                     continue
                 if let not in tempwords:
-                    print("You don't have this letter!\n")
+                    print(Back.RED + "You don't have this letter!" + Style.RESET_ALL + "\n")
                     continue
                 tempwords.remove(let)
 
@@ -203,8 +210,8 @@ def enter_letters(words, n, first, board):
 
                     break
 
-                if not first and not is_connected_to_board(temporary_position):
-                    print("Your words must be connected to others on the board!")
+                if not first and not is_connected_to_word(temporary_position):
+                    print(Back.RED + "Your words must be connected to others on the board!" + Style.RESET_ALL)
                     tempwords = words.copy()
                     createword = []
                     temporary_position = []
@@ -219,56 +226,50 @@ def enter_letters(words, n, first, board):
 
     return createword, tempwords
 
-def position(s):
-    col = s[0]
-    row = int(s[1:])
-    return col, row
 
-def check_valid(words):
-    ref_column = words[0][1][0]
-    ref_row = words[0][1][1:]
+def check_valid(letters): # input [['E', 'B1'], ['T', 'C1'], ['I', 'D1'], ['D', 'E1’]]
+    cord = letters[0][1]
+    ref_column = cord[0] # letter
+    ref_row = cord[1:] # number
     same_row = True
     same_column = True
-    for pos in words:
-        if ref_column != pos[1][0]: ## row
+
+    for pos in letters:
+        if ref_column != pos[1][0]: # row
             same_row = False
-        if ref_row != pos[1][1:]: ## column
+        if ref_row != pos[1][1:]: # column
             same_column = False
+
     if same_row or same_column:
         if same_row:
             return True, True
         else:
             return True, False
     else:
-        print("Word positions not valid! Try again")
+        print(Back.RED + "Word positions not valid! Try again" + Style.RESET_ALL)
         return False, False
 
 def check_adjacent(words, ori):
-    list = []
+    lettter_list = []
     valid = True
-    # print(list)
 
     for set in words:
         pos = set[1]
 
-        if not ori:
-            list.append(pos[0])
-            y = ord(list[0]) - 2
+        if ori:
+            lettter_list.append(pos[1:])
         else:
-            list.append(pos[1:])
-            y = int(list[0]) - 1
+            lettter_list.append(pos[0])
 
-    print(list)
 
-    for i in range(len(list)):
-        if not ori:
-            x = ord(list[i])
-            y = i + ord(list[0])  ## letters increase
+    for i in range(len(lettter_list)):
+        if ori:
+            x = int(lettter_list[i]) ## numbers increase
+            y = i + int(lettter_list[0])
         else:
-            x = int(list[i]) ## numbers increase
-            y += 1
-        
-        print(x, y)
+            x = ord(lettter_list[i])
+            y = i + ord(lettter_list[0])  ## letters increase
+
         if x != y:
             valid = False
                 
@@ -296,10 +297,11 @@ def check_word(ori, words): ## bubble sort
 
     valid = check_adjacent(words, ori)
     if not valid:
-        print("Letters are not adjacent")
-        return valid, "", None
-    
+        print(Back.RED + "Letters are not adjacent" + Style.RESET_ALL)
+    return valid
 
+
+def check_possible_word(words):
     final_word = ""
     for let in words:
         final_word += let[0][0]
@@ -309,6 +311,7 @@ def check_word(ori, words): ## bubble sort
         return False, final_word, words
     else:
         return True, final_word, words
+    
 
 def add_to_board(pos, board):
     for set in pos:
@@ -355,13 +358,13 @@ def introduction():
     print("Enter in this format to extend a word with a letter already on the board (J B1 x)")
     print("Press enter to stop entering letters\n")
 
-    sleep(3)
+    # sleep(3)
 
-    print("Colour multiplier:")
-    print(Back.RED + "-" + Style.RESET_ALL + " 3x word score")
-    print(Back.YELLOW + "-" + Style.RESET_ALL + " 2x word score")
-    print(Back.BLUE + "-" + Style.RESET_ALL + " 3x letter score")
-    print(Back.CYAN + "-" + Style.RESET_ALL + " 2x letter score\n")
+    # print("Colour multiplier:")
+    # print(Back.RED + "-" + Style.RESET_ALL + " 3x word score")
+    # print(Back.YELLOW + "-" + Style.RESET_ALL + " 2x word score")
+    # print(Back.BLUE + "-" + Style.RESET_ALL + " 3x letter score")
+    # print(Back.CYAN + "-" + Style.RESET_ALL + " 2x letter score\n")
 
     sleep(3)
     
@@ -438,7 +441,7 @@ def logo_animation(logo):
                 print(" ".join(row))
                 
             sleep(0.05/x)
-            x = x * 1.3
+            x = x * 1.4
 
 def main():
     logo_animation(ascii_logo)
@@ -470,8 +473,14 @@ def main():
             valid, ori = check_valid(letter_pos) ## checks if entered positions are valid
             if not valid:
                 continue
-            valid, word, letter_pos = check_word(ori, letter_pos) ## checks if word exists
-            if valid:
+
+            valid1 = check_word(ori, letter_pos) ## checks if adjacent
+            # print("v1", valid1)
+
+            valid2, word, letter_pos = check_possible_word(letter_pos)
+            # print("v2", valid2)
+
+            if valid1 and valid2:
                 taken_positions(letter_pos)
                 store_letter_and_positions(letter_pos)
                 # print(used_positions)
@@ -480,7 +489,12 @@ def main():
                 print("Word found: "+ word, "\n")
                 sleep(2)
             else:
-                print(f"The word '{word}' was not found")
+                if not valid1:
+                    print(Back.RED + f"The word '{word}' was not found" + Style.RESET_ALL)
+                
+                print()
+                display_board(board)
+                
                 valid, ori = False, False
 
         score[count-1] = calculate_score(word, points, p_score)
@@ -496,6 +510,5 @@ def main():
 # y = [['E', 'B1'], ['T', 'C1'], ['I', 'D1'], ['D', 'E1']]
 # # a, b = check_word(x, y)
 # # print(a, b) 
-
 
 main()
