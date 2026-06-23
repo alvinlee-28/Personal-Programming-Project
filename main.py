@@ -444,6 +444,7 @@ def logo_animation(logo):
             x = x * 1.4
 
 def main():
+
     logo_animation(ascii_logo)
     print()
 
@@ -452,6 +453,8 @@ def main():
     board = create_board()
     plr_letters = create_letters(aval_letters, plr_num)
     score, round, count = create_variables(plr_num)
+
+    # print(score)
 
     while len(aval_letters) > 0:
 
@@ -505,6 +508,10 @@ def main():
             round += 1
         else:
             count += 1
+
+    high_score = max(score)
+    position = score.index(high_score)
+    print(f"Player {position + 1} won with the score of {high_score}!")
 
 # # x = False
 # y = [['E', 'B1'], ['T', 'C1'], ['I', 'D1'], ['D', 'E1']]
