@@ -167,12 +167,14 @@ def enter_letters(words, n, first, board):
 
             if use_existing:
                 if cord not in used_positions:
-                    print(Back.RED + f"{cord} isn't being used!\n" + Style.RESET_ALL)
+                    print(Back.RED + f"{cord} isn't being used!" + Style.RESET_ALL + "\n")
                     continue
                 letter = find_letter_from_pos(cord)
                 if letter != let:
                     print(Back.RED + f"{letter} is in position {cord}!" + Style.RESET_ALL)
                     continue
+                else:
+                    print(f"{letter} successfully found in {cord}")
             else:
                 if cord in used_positions:
                     print(Back.RED + f"{cord} is in use!" + Style.RESET_ALL + "\n")
